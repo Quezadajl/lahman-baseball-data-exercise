@@ -36,6 +36,7 @@ label players with position OF as "Outfield",
 those with position "SS", "1B", "2B", and "3B" as "Infield", 
 and those with position "P" or "C" as "Battery". 
 Determine the number of putouts made by each of these three groups in 2016.*/
+WITH CTE AS (
 SELECT DISTINCT namegiven, 
 	COUNT(PO) AS Putouts, yearid, pos,
 	CASE 
@@ -51,14 +52,28 @@ INNER JOIN fielding AS f
 ON p.playerid = f.playerid
 WHERE pos IN ('OF','SS', '1B', '2B', '3B','P','C')
 AND yearid = '2016'
-GROUP BY PO, namegiven, yearid, pos;
+GROUP BY PO, namegiven, yearid, pos
+)
+
+SELECT SUM(Putouts) as outfield_group,
+	(SELECT SUM(Putouts)
+FROM CTE
+WHERE positions = 'Infield') as infield_group,
+( SELECT SUM(Putouts)
+FROM CTE
+WHERE positions = 'Battery') as battery_group
+FROM CTE
+WHERE positions = 'Outfield'
 
 /* Q.5 Find the average number of strikeouts per game by decade since 1920. 
 Round the numbers you report to 2 decimal places. 
 Do the same for home runs per game. Do you see any trends?*/
-SELECT franchid, ROUND(AVG(so),2) AS avg_so, yearid, 
-yearid/10*10 AS decade
+SELECT franchid, ROUND((AVG(so) + AVG(soa))/2,2) AS avg_so,
+		   ROUND(AVG(hra),2) AS avg_hr, yearid, yearid/10*10 AS decade
 FROM teams
-WHERE yearid >= '1920'
+WHERE yearid between '1920' and '2016'
 GROUP BY franchid, yearid, yearid/10*10
 ORDER BY yearid;
+
+
+
