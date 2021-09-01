@@ -30,7 +30,7 @@ WHERE schoolname = 'Vanderbilt University'
 GROUP BY namegiven, schoolname, p.playerID
 ORDER BY SUM(salary) DESC;
 
-/* Q.4 - 
+/* Q.4 - INCOMPLETE
 Using the fielding table, group players into three groups based on their position:
 label players with position OF as "Outfield", 
 those with position "SS", "1B", "2B", and "3B" as "Infield", 
@@ -53,3 +53,12 @@ WHERE pos IN ('OF','SS', '1B', '2B', '3B','P','C')
 AND yearid = '2016'
 GROUP BY PO, namegiven, yearid, pos;
 
+/* Q.5 Find the average number of strikeouts per game by decade since 1920. 
+Round the numbers you report to 2 decimal places. 
+Do the same for home runs per game. Do you see any trends?*/
+SELECT franchid, ROUND(AVG(so),2) AS avg_so, yearid, 
+yearid/10*10 AS decade
+FROM teams
+WHERE yearid >= '1920'
+GROUP BY franchid, yearid, yearid/10*10
+ORDER BY yearid;
