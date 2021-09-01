@@ -30,7 +30,7 @@ WHERE schoolname = 'Vanderbilt University'
 GROUP BY namegiven, schoolname, p.playerID
 ORDER BY SUM(salary) DESC;
 
-/* Q.4 - INCOMPLETE
+/* Q.4 - 
 Using the fielding table, group players into three groups based on their position:
 label players with position OF as "Outfield", 
 those with position "SS", "1B", "2B", and "3B" as "Infield", 
@@ -65,7 +65,8 @@ WHERE positions = 'Battery') as battery_group
 FROM CTE
 WHERE positions = 'Outfield'
 
-/* Q.5 Find the average number of strikeouts per game by decade since 1920. 
+/* Q.5 INCOMPLETE (SUM strikeouts/DIVIDED by total games)
+Find the average number of strikeouts per game by decade since 1920. 
 Round the numbers you report to 2 decimal places. 
 Do the same for home runs per game. Do you see any trends?*/
 SELECT franchid, ROUND((AVG(so) + AVG(soa))/2,2) AS avg_so,
@@ -74,6 +75,20 @@ FROM teams
 WHERE yearid between '1920' and '2016'
 GROUP BY franchid, yearid, yearid/10*10
 ORDER BY yearid;
+
+/* Q.6 Find the player who had the most success stealing bases in 2016, 
+where success is measured as the percentage of stolen base attempts which are successful. 
+(A stolen base attempt results either in a stolen base or being caught stealing.) 
+Consider only players who attempted at least 20 stolen bases.*/
+
+SELECT namegiven, sb, cs, (sb + cs)	AS total_stln,
+	ROUND(CAST(sb AS numeric)/(CAST(sb+cs as numeric)),2) *100 AS perc_stl
+FROM people as p
+INNER JOIN batting AS b
+ON p.playerid = b.playerid
+WHERE b.yearid = '2016' 
+	AND sb >= 20
+ORDER BY perc_stl DESC;
 
 
 
