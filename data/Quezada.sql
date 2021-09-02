@@ -65,17 +65,25 @@ WHERE positions = 'Battery') as battery_group
 FROM CTE
 WHERE positions = 'Outfield'
 
-/* Q.5 INCOMPLETE (SUM strikeouts/DIVIDED by total games)
+/* Q.5 
 Find the average number of strikeouts per game by decade since 1920. 
 Round the numbers you report to 2 decimal places. 
 Do the same for home runs per game. Do you see any trends?*/
-SELECT franchid, ROUND((AVG(so) + AVG(soa))/2,2) AS avg_so,
+WITH CTE AS (
+	SELECT franchid, ROUND((AVG(so) + AVG(soa))/2,2) AS avg_so, g, 
 		   ROUND(AVG(hra),2) AS avg_hr, yearid, yearid/10*10 AS decade
 FROM teams
 WHERE yearid between '1920' and '2016'
-GROUP BY franchid, yearid, yearid/10*10
-ORDER BY yearid;
+GROUP BY franchid, yearid, yearid/10*10, g
+ORDER BY yearid)
 
+SELECT franchid, 
+		ROUND(SUM(avg_so)/g,2) as so_pg, 
+		ROUND(SUM(avg_hr)/g,2) as hr_pg, 
+		yearid, decade,g
+FROM CTE
+GROUP BY franchid, g, avg_hr, yearid, decade
+ORDER BY yearid;
 /* Q.6 Find the player who had the most success stealing bases in 2016, 
 where success is measured as the percentage of stolen base attempts which are successful. 
 (A stolen base attempt results either in a stolen base or being caught stealing.) 
