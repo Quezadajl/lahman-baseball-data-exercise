@@ -84,6 +84,7 @@ SELECT franchid,
 FROM CTE
 GROUP BY franchid, g, avg_hr, yearid, decade
 ORDER BY yearid;
+
 /* Q.6 Find the player who had the most success stealing bases in 2016, 
 where success is measured as the percentage of stolen base attempts which are successful. 
 (A stolen base attempt results either in a stolen base or being caught stealing.) 
@@ -106,7 +107,28 @@ Doing this will probably result in an unusually small number of wins for a world
 determine why this is the case. 
 Then redo your query, excluding the problem year. 
 How often from 1970 – 2016 was it the case that a team with the most wins also won the world series?
-What percentage of the time?
+What percentage of the time?*/
+WITH CTE AS (SELECT teamid, g, w, DivWin, WSWin, yearid
+FROM teams
+WHERE yearid between '1970' and '2016'
+ORDER BY yearid),
 
+smll_wsw AS (SELECT teamid, MIN(g), WSWin
+FROM CTE
+WHERE WSWin = 'Y'
+GROUP BY teamid, WSWin),
+
+lrg_wswnot AS (SELECT teamid, MAX(g), WSWin
+FROM CTE
+WHERE WSWin = 'N'
+GROUP BY teamid, WSWin
+ORDER BY MAX(g) DESC)
+
+SELECT teamid, yearid, WSWin,
+	(SELECT MIN(g) FROM CTE WHERE WSWin = 'Y') as smll_w,
+	(SELECT MAX(g) FROM CTE WHERE WSWin = 'N') as lrg_NW
+FROM CTE
+GROUP BY teamid, yearid, WSWin
+ORDER BY lrg_NW;
 
 
