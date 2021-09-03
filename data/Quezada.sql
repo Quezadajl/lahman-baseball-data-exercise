@@ -6,10 +6,11 @@ FROM homegames;
 
 /* Q.2 - Find the name and height of the shortest player in the database. 
 How many games did he play in? What is the name of the team for which he played?*/
-SELECT namegiven, height, debut, finalgame, teamid 
+SELECT namegiven, height, debut, finalgame, teamid, SUM(a.g_all) as games_played
 FROM people AS p
 INNER JOIN appearances AS a
-ON p.playerid = a.playerid
+USING (playerid)
+GROUP BY namegiven, height, debut, finalgame, teamid
 ORDER BY height
 LIMIT 1;
 
@@ -101,34 +102,35 @@ ORDER BY perc_stl DESC;
 
 /* Q.7 
 From 1970 – 2016, 
-what is the largest number of wins for a team that did not win the world series? 
 What is the smallest number of wins for a team that did win the world series? 
+*/
+WITH CTE AS (SELECT teamid, g, w, DivWin, WSWin, yearid
+FROM teams
+WHERE yearid between '1970' and '2016'
+ORDER BY yearid)
+
+
+SELECT teamid, MIN(w), WSWin, yearid
+FROM CTE
+WHERE WSWin = 'Y' AND yearid <> '1981'
+GROUP BY teamid, WSWin, yearid
+ORDER BY MIN(w);
+/*
+what is the largest number of wins for a team that did not win the world series?*/
+WITH CTE AS (SELECT teamid, g, w, DivWin, WSWin, yearid
+FROM teams
+WHERE yearid between '1970' and '2016'
+ORDER BY yearid)
+
+SELECT teamid, MAX(w), WSWin, yearid
+FROM CTE
+WHERE WSWin = 'N'
+GROUP BY teamid, WSWin, yearid
+ORDER BY MAX(w) DESC;
+/*
 Doing this will probably result in an unusually small number of wins for a world series champion – 
 determine why this is the case. 
 Then redo your query, excluding the problem year. 
 How often from 1970 – 2016 was it the case that a team with the most wins also won the world series?
 What percentage of the time?*/
-WITH CTE AS (SELECT teamid, g, w, DivWin, WSWin, yearid
-FROM teams
-WHERE yearid between '1970' and '2016'
-ORDER BY yearid),
-
-smll_wsw AS (SELECT teamid, MIN(g), WSWin
-FROM CTE
-WHERE WSWin = 'Y'
-GROUP BY teamid, WSWin),
-
-lrg_wswnot AS (SELECT teamid, MAX(g), WSWin
-FROM CTE
-WHERE WSWin = 'N'
-GROUP BY teamid, WSWin
-ORDER BY MAX(g) DESC)
-
-SELECT teamid, yearid, WSWin,
-	(SELECT MIN(g) FROM CTE WHERE WSWin = 'Y') as smll_w,
-	(SELECT MAX(g) FROM CTE WHERE WSWin = 'N') as lrg_NW
-FROM CTE
-GROUP BY teamid, yearid, WSWin
-ORDER BY lrg_NW;
-
 
