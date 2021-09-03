@@ -19,7 +19,8 @@ Create a list showing each player’s first and last names
 as well as the total salary they earned in the major leagues. 
 Sort this list in descending order by the total salary earned. 
 Which Vanderbilt player earned the most money in the majors? David Taylor*/
-SELECT DISTINCT namegiven, schoolname, SUM(salary), p.playerID, debut, finalgame	
+SELECT DISTINCT namegiven, schoolname, SUM( DISTINCT salary::text::money) AS total_salary,
+	p.playerID, debut, finalgame	
 FROM people AS p
 INNER JOIN collegeplaying AS c
 ON p.playerid = c.playerid
@@ -29,7 +30,7 @@ INNER JOIN salaries AS pay
 ON p.playerid = pay.playerid
 WHERE schoolname = 'Vanderbilt University'
 GROUP BY namegiven, schoolname, p.playerID
-ORDER BY SUM(salary) DESC;
+ORDER BY SUM( DISTINCT salary::text::money) DESC;
 
 /* Q.4 - 
 Using the fielding table, group players into three groups based on their position:
@@ -39,7 +40,7 @@ and those with position "P" or "C" as "Battery".
 Determine the number of putouts made by each of these three groups in 2016.*/
 WITH CTE AS (
 SELECT DISTINCT namegiven, 
-	COUNT(PO) AS Putouts, yearid, pos,
+	SUM(PO) AS Putouts, yearid, pos,
 	CASE 
 		WHEN pos = 'SS' THEN 'Infield'
 		WHEN pos = '1B' THEN 'Infield'
@@ -85,6 +86,39 @@ SELECT franchid,
 FROM CTE
 GROUP BY franchid, g, avg_hr, yearid, decade
 ORDER BY yearid;
+
+
+ANDREW CODE:
+
+SELECT decade, 
+		SUM(so) as so_batter, SUM(soa) as so_pitcher, 
+		ROUND(CAST(SUM(so) as dec) / CAST(SUM(g) as dec), 2) as so_per_game,
+		ROUND(CAST(SUM(hr) as dec) / CAST(SUM(g) as dec), 2) as hr_per_game
+FROM (
+	SELECT CASE 
+			WHEN yearid >= 2010 THEN '2010s'
+			WHEN yearid >= 2000 THEN '2000s'
+			WHEN yearid >= 1990 THEN '1990s'
+			WHEN yearid >= 1980 THEN '1980s'
+			WHEN yearid >= 1970 THEN '1970s'
+			WHEN yearid >= 1960 THEN '1960s'
+			WHEN yearid >= 1950 THEN '1950s'
+			WHEN yearid >= 1940 THEN '1940s'
+			WHEN yearid >= 1930 THEN '1930s'
+			WHEN yearid >= 1920 THEN '1920s'
+			ELSE NULL
+		END AS decade,
+		so,
+		soa,
+		hr,
+		g
+	FROM teams
+-- 	WHERE decade IS NOT NULL
+) sub
+WHERE decade IS NOT NULL
+GROUP BY decade
+ORDER BY decade DESC;
+
 
 /* Q.6 Find the player who had the most success stealing bases in 2016, 
 where success is measured as the percentage of stolen base attempts which are successful. 
