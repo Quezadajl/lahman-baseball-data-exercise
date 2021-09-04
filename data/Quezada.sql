@@ -131,7 +131,7 @@ FROM people as p
 INNER JOIN batting AS b
 ON p.playerid = b.playerid
 WHERE b.yearid = '2016' 
-	AND sb >= 20
+	AND sb + cs >= 20
 ORDER BY perc_stl DESC;
 
 /* Q.7 
